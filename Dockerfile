@@ -1,35 +1,18 @@
-FROM solr:8.8.1
+FROM solr:8.11.2
 LABEL maintainer="jason.dudash@gmail.com"
 LABEL maintainer="emiliano.sune@gmail.com"
 
 USER root
 ENV STI_SCRIPTS_PATH=/usr/libexec/s2i
 
-RUN apt-get update && \
-    apt-get install zip
-
-# ===============================================================================================
-# Mitigation for CVE-2021-44228 and CVE-2021-45046
-#   - Set LOG4J_FORMAT_MSG_NO_LOOKUPS=true
-#   - Remove JndiLookup.class from the classpath.
-#
-# Upgrade to solr 8.11.1 or greater when availble.
-#
-# References:
-#   - https://logging.apache.org/log4j/2.x/security.html
-#   - https://solr.apache.org/security.html#apache-solr-affected-by-apache-log4j-cve-2021-44228
-#
-# Search for jars containing JndiLookup.class:
-#   - find / -name log4j-core*.jar -exec unzip -vl {} \; 2>/dev/null | grep JndiLookup.class
-# -----------------------------------------------------------------------------------------------
-ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
-RUN find / -name log4j-core*.jar -exec zip -q -d {} org/apache/logging/log4j/core/lookup/JndiLookup.class \; 2>/dev/null
-# ===============================================================================================
+RUN apt-get update -y && \
+    apt-get install -y \
+    zip
 
 LABEL io.k8s.description="Run SOLR search in OpenShift" \
-      io.k8s.display-name="SOLR 8.8.1" \
+      io.k8s.display-name="SOLR 8.11.2" \
       io.openshift.expose-services="8983:http" \
-      io.openshift.tags="builder,solr,solr8.8.1" \
+      io.openshift.tags="builder,solr,solr8.11.2" \
       io.openshift.s2i.scripts-url="image:///${STI_SCRIPTS_PATH}"
 
 COPY ./s2i/bin/. ${STI_SCRIPTS_PATH}
